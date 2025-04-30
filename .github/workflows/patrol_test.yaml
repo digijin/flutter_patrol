@@ -43,10 +43,11 @@ jobs:
         emulator-boot-timeout: 1800 # Increase boot timeout to 30 minutes (1800 seconds)
         # Start logcat in background, run test with verbose, then kill logcat
         script: |
-          adb logcat -v time > logcat_output.txt &
+          adb logcat -v time | tee logcat_output.txt > /dev/null &
           LOGCAT_PID=$!
-          patrol test --verbose --target integration_test/app_test.dart
+          patrol test --verbose --target integration_test/app_test.dart || EXIT_CODE=$?
           kill $LOGCAT_PID || true
+          exit ${EXIT_CODE:-0}
 
     - name: Upload Logcat Output
       # Always run this step, even if the test script fails/times out
