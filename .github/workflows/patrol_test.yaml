@@ -1,0 +1,51 @@
+name: Run Patrol Android Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin' # Popular OpenJDK distribution
+        java-version: '17'     # Android development often uses JDK 17
+
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable' # Or match your project's channel
+        # Optional: specify exact version if needed
+        flutter-version: '3.27.4'
+        cache: true # Set cache to true for faster builds
+
+    - name: Install Patrol CLI
+      run: flutter pub global activate patrol_cli
+
+    - name: Get Flutter dependencies
+      run: flutter pub get
+
+    - name: Run Android Emulator and Patrol Tests
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 35 # Match compileSdk required by Patrol
+        target: google_apis # Use google_apis for emulators with Play Services
+        arch: x86_64
+        script: patrol test --target integration_test/app_test.dart # Use patrol, not patrol.bat
+
+    # Optional: Upload test reports if needed for debugging
+    # - name: Upload Test Reports
+    #   if: always() # Run this even if the test step fails
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: android-test-report
+    #     path: build/app/reports/androidTests/connected/debug/index.html
