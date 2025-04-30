@@ -38,8 +38,9 @@ jobs:
       uses: reactivecircus/android-emulator-runner@v2
       with:
         api-level: 35 # Match compileSdk required by Patrol
-        target: google_apis # Use google_apis for emulators with Play Services
+        target: default # Use google_apis for emulators with Play Services
         arch: x86_64
+        emulator-boot-timeout: 1800 # Increase boot timeout to 30 minutes (1800 seconds)
         # Start logcat in background, run test with verbose, then kill logcat
         script: |
           adb logcat -v time > logcat_output.txt &
