@@ -40,7 +40,20 @@ jobs:
         api-level: 35 # Match compileSdk required by Patrol
         target: google_apis # Use google_apis for emulators with Play Services
         arch: x86_64
-        script: patrol test --target integration_test/app_test.dart # Use patrol, not patrol.bat
+        # Start logcat in background, run test with verbose, then kill logcat
+        script: |
+          adb logcat -v time > logcat_output.txt &
+          LOGCAT_PID=$!
+          patrol test --verbose --target integration_test/app_test.dart
+          kill $LOGCAT_PID || true
+
+    - name: Upload Logcat Output
+      # Always run this step, even if the test script fails/times out
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: logcat-output
+        path: logcat_output.txt
 
     # Optional: Upload test reports if needed for debugging
     # - name: Upload Test Reports
